@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seu Louvor, Nosso Louvor</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #F0D080;
+    --gold-dim: #8a6e2f;
+    --dark: #0d0d0f;
+    --dark2: #161618;
+    --dark3: #1e1e22;
+    --text: #f0ede4;
+    --text-muted: #9a9080;
+    --radius: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Lato', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Fundo decorativo */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 10%, rgba(201,168,76,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 80% 90%, rgba(201,168,76,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .cruz {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.025;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .cruz svg { width: 600px; height: 600px; }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    width: min(860px, 95vw);
+    text-align: center;
+    padding: 2rem 1rem;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 3rem;
+  }
+
+  .nota-musical {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--gold);
+    display: block;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .titulo {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    font-weight: 900;
+    color: var(--gold-light);
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 40px rgba(201,168,76,0.25);
+  }
+
+  .subtitulo {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-top: 0.6rem;
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .linha-ornamento {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: center;
+    margin: 1.5rem auto 0;
+    width: 260px;
+  }
+  .linha-ornamento span {
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(to right, transparent, var(--gold-dim));
+  }
+  .linha-ornamento span:last-child {
+    background: linear-gradient(to left, transparent, var(--gold-dim));
+  }
+  .linha-ornamento em {
+    color: var(--gold);
+    font-style: normal;
+    font-size: 1rem;
+  }
+
+  /* Botão principal */
+  .btn-sortear {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.1rem 3rem;
+    background: linear-gradient(135deg, var(--gold) 0%, #a8872a 100%);
+    color: #1a1200;
+    border: none;
+    border-radius: 60px;
+    font-family: 'Lato', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 24px rgba(201,168,76,0.35);
+    margin: 2.5rem auto 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-sortear::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0);
+    transition: background 0.2s;
+  }
+
+  .btn-sortear:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(201,168,76,0.5);
+  }
+  .btn-sortear:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  .btn-sortear:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .btn-icon { font-size: 1.4rem; }
+
+  /* Card resultado */
+  .resultado-wrap {
+    display: none;
+    margin-top: 2.5rem;
+    animation: revelarCard 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  @keyframes revelarCard {
+    from { opacity: 0; transform: scale(0.85) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .resultado-card {
+    background: var(--dark3);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: var(--radius);
+    padding: 2.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .resultado-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .brilho-fundo {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .tag-selecionado {
+    display: inline-block;
+    background: rgba(201,168,76,0.12);
+    color: var(--gold);
+    border: 1px solid rgba(201,168,76,0.3);
+    padding: 0.25rem 1rem;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .nome-pessoa {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 700;
+    color: var(--gold-light);
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+
+  .musica-linha {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin: 1.2rem 0;
+  }
+
+  .musica-nome {
+    font-size: clamp(1.3rem, 3vw, 2rem);
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .cantor-nome {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .divider-card {
+    height: 1px;
+    background: rgba(201,168,76,0.15);
+    margin: 1.5rem 0;
+  }
+
+  .motivo-box {
+    background: rgba(255,255,255,0.03);
+    border-left: 2px solid var(--gold-dim);
+    border-radius: 0 8px 8px 0;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    font-style: italic;
+    text-align: left;
+    display: none;
+  }
+
+  .email-aviso {
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .email-aviso .check {
+    color: #4ade80;
+    font-size: 1rem;
+  }
+
+  .domingo-info {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  .domingo-info strong {
+    color: var(--gold);
+  }
+
+  /* Botão novo sorteio */
+  .btn-novo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding: 0.6rem 1.5rem;
+    background: transparent;
+    border: 1px solid rgba(201,168,76,0.35);
+    color: var(--gold-dim);
+    border-radius: 30px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Lato', sans-serif;
+  }
+  .btn-novo:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(201,168,76,0.08);
+  }
+
+  /* Loading spinner */
+  .spinner {
+    display: none;
+    width: 22px; height: 22px;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-top-color: #1a1200;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 0.25rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Mensagem erro */
+  .erro-box {
+    display: none;
+    margin-top: 1.5rem;
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: var(--radius);
+    padding: 1.2rem 1.5rem;
+    color: #fca5a5;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  /* CONFIGURAÇÃO */
+  .config-panel {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 100;
+  }
+
+  .btn-config {
+    background: var(--dark3);
+    border: 1px solid rgba(201,168,76,0.2);
+    color: var(--text-muted);
+    border-radius: 50%;
+    width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: all 0.2s;
+  }
+  .btn-config:hover { color: var(--gold); border-color: var(--gold); }
+
+  .config-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .config-modal.aberto { display: flex; }
+
+  .config-box {
+    background: var(--dark2);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: var(--radius);
+    padding: 2rem;
+    width: min(480px, 90vw);
+  }
+  .config-box h2 {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold-light);
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+  }
+
+  .config-box label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+  .config-box input {
+    width: 100%;
+    background: var(--dark3);
+    border: 1px solid rgba(201,168,76,0.2);
+    color: var(--text);
+    padding: 0.7rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-family: 'Lato', sans-serif;
+    margin-bottom: 1.2rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .config-box input:focus { border-color: var(--gold); }
+
+  .config-hint {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: -1rem;
+    margin-bottom: 1.2rem;
+    line-height: 1.5;
+  }
+
+  .config-acoes {
+    display: flex; gap: 0.75rem; justify-content: flex-end; flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+  .btn-salvar {
+    background: var(--gold);
+    color: #1a1200;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 30px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.9rem;
+  }
+  .btn-cancelar {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 0.6rem 1.2rem;
+    border-radius: 30px;
+    cursor: pointer;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.9rem;
+  }
+
+  /* Confetti dots */
+  .confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 50;
+    overflow: hidden;
+  }
+  .confetti-dot {
+    position: absolute;
+    border-radius: 50%;
+    animation: cair linear forwards;
+  }
+  @keyframes cair {
+    0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* Historico */
+  .historico {
+    margin-top: 2rem;
+    max-height: 160px;
+    overflow-y: auto;
+    width: 100%;
+  }
+  .historico::-webkit-scrollbar { width: 4px; }
+  .historico::-webkit-scrollbar-track { background: transparent; }
+  .historico::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 4px; }
+
+  .historico-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    transition: background 0.15s;
+    text-align: left;
+  }
+  .historico-item:hover { background: rgba(255,255,255,0.04); }
+  .historico-item .hi-num {
+    min-width: 22px;
+    height: 22px;
+    background: rgba(201,168,76,0.1);
+    color: var(--gold-dim);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .historico-titulo {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-align: left;
+    margin-bottom: 0.4rem;
+    display: none;
+  }
+
+  @media (max-width: 600px) {
+    .titulo { font-size: 2rem; }
+    .btn-sortear { padding: 1rem 2rem; font-size: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Cruz de fundo decorativa -->
+<div class="cruz">
+  <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="85" y="20" width="30" height="160" fill="white"/>
+    <rect x="20" y="75" width="160" height="30" fill="white"/>
+  </svg>
+</div>
+
+<div class="confetti-container" id="confettiContainer"></div>
+
+<div class="container">
+
+  <div class="header">
+    <span class="nota-musical">♪</span>
+    <h1 class="titulo">Seu Louvor,<br>Nosso Louvor</h1>
+    <p class="subtitulo">Sorteio de músicas da congregação</p>
+    <div class="linha-ornamento">
+      <span></span>
+      <em>✦</em>
+      <span></span>
+    </div>
+  </div>
+
+  <button class="btn-sortear" id="btnSortear" onclick="realizarSorteio()">
+    <div class="spinner" id="spinner"></div>
+    <span class="btn-icon" id="btnIcone">🎵</span>
+    <span id="btnTexto">Sortear o próximo louvor</span>
+  </button>
+
+  <div class="erro-box" id="erroBox"></div>
+
+  <div class="resultado-wrap" id="resultadoWrap">
+    <div class="resultado-card">
+      <div class="brilho-fundo"></div>
+      <div class="tag-selecionado">✦ Louvor sorteado ✦</div>
+
+      <div class="nome-pessoa" id="resPessoa">—</div>
+
+      <div class="musica-linha">
+        <span style="color: var(--gold); font-size:1.4rem;">♪</span>
+        <span class="musica-nome" id="resMusica">—</span>
+      </div>
+
+      <div class="cantor-nome" id="resCantor"></div>
+
+      <div class="divider-card"></div>
+
+      <div class="motivo-box" id="resMotivo"></div>
+
+      <div class="email-aviso">
+        <span class="check">✓</span>
+        <span>E-mail de confirmação enviado para <strong id="resEmail">—</strong></span>
+      </div>
+
+      <div class="domingo-info" id="resDomingo"></div>
+
+      <div>
+        <button class="btn-novo" onclick="prepararNovo()">↺ Realizar novo sorteio</button>
+      </div>
+
+    </div>
+
+    <div class="historico" id="historico" style="display:none;">
+      <p class="historico-titulo" id="historicoTitulo">Sorteios desta sessão</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Painel de configuração -->
+<div class="config-panel">
+  <button class="btn-config" title="Configurar" onclick="abrirConfig()">⚙</button>
+</div>
+
+<div class="config-modal" id="configModal">
+  <div class="config-box">
+    <h2>⚙ Configuração</h2>
+
+    <label>URL do Google Apps Script (Web App)</label>
+    <input type="url" id="inputUrl" placeholder="https://script.google.com/macros/s/...exec">
+    <p class="config-hint">
+      Publique seu script como <strong>Web App</strong> (Implantar → Nova implantação → Tipo: App da Web)
+      e cole a URL aqui. Defina acesso como <em>"Qualquer pessoa"</em>.
+    </p>
+
+    <div class="config-acoes">
+      <button class="btn-cancelar" onclick="fecharConfig()">Cancelar</button>
+      <button class="btn-salvar" onclick="salvarConfig()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── CONFIGURAÇÃO ────────────────────────────────────────────────
+  const STORAGE_KEY_URL = 'slnl_webapp_url';
+  let webAppUrl = localStorage.getItem(STORAGE_KEY_URL) || '';
+
+  let historicoSorteios = [];
+
+  function abrirConfig() {
+    document.getElementById('inputUrl').value = webAppUrl;
+    document.getElementById('configModal').classList.add('aberto');
+  }
+  function fecharConfig() {
+    document.getElementById('configModal').classList.remove('aberto');
+  }
+  function salvarConfig() {
+    const v = document.getElementById('inputUrl').value.trim();
+    webAppUrl = v;
+    localStorage.setItem(STORAGE_KEY_URL, v);
+    fecharConfig();
+    mostrarErro('');
+  }
+
+  // Fecha modal ao clicar fora
+  document.getElementById('configModal').addEventListener('click', function(e) {
+    if (e.target === this) fecharConfig();
+  });
+
+  // ── SORTEIO ─────────────────────────────────────────────────────
+  async function realizarSorteio() {
+    if (!webAppUrl) {
+      mostrarErro('Configure a URL do Web App primeiro clicando em ⚙ no canto inferior direito.');
+      return;
+    }
+
+    setCarregando(true);
+    mostrarErro('');
+    esconderResultado();
+
+    try {
+      // Chama o Google Apps Script via fetch (JSONP não é necessário se CORS estiver liberado)
+      // O Apps Script Web App com acesso "Qualquer pessoa" responde a fetch com redirect
+      const response = await fetch(webAppUrl, {
+        method: 'GET',
+        redirect: 'follow',
+      });
+
+      const text = await response.text();
+
+      // Tenta parsear como JSON
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        // Se o script retornou HTML (página de erro do Google), tenta extrair mensagem
+        if (text.includes('Não há participantes') || text.includes('Ainda não há')) {
+          const match = text.match(/Error: (.+?)</);
+          throw new Error(match ? match[1] : 'Nenhum participante aguardando sorteio.');
+        }
+        throw new Error('Resposta inesperada do servidor. Verifique se a URL está correta e o script está publicado como Web App.');
+      }
+
+      if (data.erro || data.error) {
+        throw new Error(data.erro || data.error);
+      }
+
+      exibirResultado(data);
+      dispararConfetti();
+
+    } catch (err) {
+      mostrarErro('❌ ' + err.message);
+    } finally {
+      setCarregando(false);
+    }
+  }
+
+  function exibirResultado(d) {
+    document.getElementById('resPessoa').textContent = d.nome || '—';
+    document.getElementById('resMusica').textContent = d.musica || '—';
+    document.getElementById('resEmail').textContent = d.email || '—';
+
+    const cantorEl = document.getElementById('resCantor');
+    if (d.cantor && d.cantor !== 'Não informado') {
+      cantorEl.textContent = d.cantor;
+      cantorEl.style.display = 'block';
+    } else {
+      cantorEl.style.display = 'none';
+    }
+
+    const motivoEl = document.getElementById('resMotivo');
+    if (d.motivo) {
+      motivoEl.textContent = '"' + d.motivo + '"';
+      motivoEl.style.display = 'block';
+    } else {
+      motivoEl.style.display = 'none';
+    }
+
+    const domingoEl = document.getElementById('resDomingo');
+    if (d.domingo) {
+      const dt = new Date(d.domingo);
+      const fmt = dt.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+      domingoEl.innerHTML = 'Previsto para: <strong>' + fmt + '</strong>';
+      domingoEl.style.display = 'block';
+    } else {
+      domingoEl.style.display = 'none';
+    }
+
+    const wrap = document.getElementById('resultadoWrap');
+    wrap.style.display = 'block';
+
+    // Adiciona ao histórico
+    historicoSorteios.push({ nome: d.nome, musica: d.musica });
+    atualizarHistorico();
+
+    // Scroll suave para o resultado
+    setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+  }
+
+  function atualizarHistorico() {
+    if (historicoSorteios.length <= 1) return;
+    const hEl = document.getElementById('historico');
+    const tEl = document.getElementById('historicoTitulo');
+    hEl.style.display = 'block';
+    tEl.style.display = 'block';
+
+    // Remove itens antigos (exceto título)
+    const items = hEl.querySelectorAll('.historico-item');
+    items.forEach(i => i.remove());
+
+    // Adiciona todos (exceto o atual, que já está no card)
+    historicoSorteios.slice(0, -1).reverse().forEach((s, idx) => {
+      const div = document.createElement('div');
+      div.className = 'historico-item';
+      const num = historicoSorteios.length - 1 - idx;
+      div.innerHTML = `<span class="hi-num">${num}</span><span><strong>${s.nome}</strong> — ${s.musica}</span>`;
+      hEl.appendChild(div);
+    });
+  }
+
+  function esconderResultado() {
+    const wrap = document.getElementById('resultadoWrap');
+    wrap.style.display = 'none';
+    // Reinicia animação para próximo sorteio
+    void wrap.offsetWidth;
+  }
+
+  function prepararNovo() {
+    esconderResultado();
+    document.getElementById('erroBox').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function setCarregando(sim) {
+    const btn = document.getElementById('btnSortear');
+    const spinner = document.getElementById('spinner');
+    const icone = document.getElementById('btnIcone');
+    const texto = document.getElementById('btnTexto');
+
+    btn.disabled = sim;
+    spinner.style.display = sim ? 'block' : 'none';
+    icone.style.display = sim ? 'none' : 'inline';
+    texto.textContent = sim ? 'Sorteando...' : 'Sortear o próximo louvor';
+  }
+
+  function mostrarErro(msg) {
+    const el = document.getElementById('erroBox');
+    if (!msg) { el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    el.innerHTML = msg + '<br><br><small style="opacity:.7">Dica: clique em ⚙ para configurar a URL do Web App.</small>';
+  }
+
+  // ── CONFETTI ─────────────────────────────────────────────────────
+  function dispararConfetti() {
+    const container = document.getElementById('confettiContainer');
+    const cores = ['#C9A84C','#F0D080','#fff','#a8872a','#fde68a','#fbbf24'];
+    const total = 60;
+
+    for (let i = 0; i < total; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'confetti-dot';
+      const size = Math.random() * 10 + 5;
+      dot.style.cssText = `
+        width:${size}px; height:${size}px;
+        left:${Math.random()*100}vw;
+        top:-20px;
+        background:${cores[Math.floor(Math.random()*cores.length)]};
+        animation-duration:${Math.random()*2+2}s;
+        animation-delay:${Math.random()*1.5}s;
+        opacity:${Math.random()*0.7+0.3};
+      `;
+      container.appendChild(dot);
+      dot.addEventListener('animationend', () => dot.remove());
+    }
+  }
+
+  // ── INIT ─────────────────────────────────────────────────────────
+  window.addEventListener('load', () => {
+    if (!webAppUrl) {
+      // Mostra dica na primeira vez
+      setTimeout(() => {
+        mostrarErro('Primeira vez? Clique em ⚙ para configurar a URL do seu Web App do Google Apps Script.');
+      }, 800);
+    }
+  });
+</script>
+</body>
+</html>
